@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Notification {
+  id          String             @id @default(uuid())
+
+  // Dedup key: Kafka is at-least-once.
+  eventId     String             @unique
+
+  shipmentId  String
+  reference   String
+  recipientId String
+  eventType   String
+  channel     String             @default("EMAIL")
+  subject     String
+  body        String
+  status      NotificationStatus @default(PENDING)
+  attempts    Int                @default(0)
+  lastError   String?
+  sentAt      DateTime?
+  createdAt   DateTime           @default(now())
+
+  @@index([recipientId, createdAt])
+  @@index([status, createdAt])
+}
+
+// Poison messages, parked so they cannot block a partition.
+model DeadLetter {
+  id        String   @id @default(uuid())
+  topic     String
+  partition Int
+  offset    String
+  payload   String
+  error     String
+  createdAt DateTime @default(now())
+}
