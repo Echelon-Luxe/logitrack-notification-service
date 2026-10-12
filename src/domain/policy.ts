@@ -41,6 +41,23 @@ const TEMPLATES: Record<string, (p: ShipmentEventPayload) => RenderedMessage> = 
   }),
 };
 
+// What the assigned driver is told. Only events that change their work.
+const DRIVER_TEMPLATES: Record<string, (p: ShipmentEventPayload) => RenderedMessage> = {
+  'shipment.assigned': (p) => ({
+    subject: `New job ${p.reference}`,
+    body: `You have been assigned ${p.reference}: pick up at ${p.origin}, deliver to ${p.destination}.`,
+  }),
+  'shipment.cancelled': (p) => ({
+    subject: `Job ${p.reference} cancelled`,
+    body: `Shipment ${p.reference} was cancelled. You are free for your next job.`,
+  }),
+};
+
+export function renderForDriver(env: EventEnvelope<ShipmentEventPayload>): RenderedMessage | null {
+  const template = DRIVER_TEMPLATES[env.eventType];
+  return template ? template(env.payload) : null;
+}
+
 export function render(env: EventEnvelope<ShipmentEventPayload>): RenderedMessage {
   const template = TEMPLATES[env.eventType];
   // Falls back rather than throwing: an unknown-but-notifiable event should

@@ -14,6 +14,7 @@ export interface ShipmentEventPayload {
   status: string;
   customerId: string;
   driverId: string | null;
+  driverUserId?: string | null;
   origin: string;
   destination: string;
 }

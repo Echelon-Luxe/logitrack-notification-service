@@ -22,8 +22,9 @@ enum NotificationStatus {
 model Notification {
   id          String             @id @default(uuid())
 
-  // Dedup key: Kafka is at-least-once.
-  eventId     String             @unique
+  // Dedup key with recipientId: Kafka is at-least-once, and one event can
+  // address several people (the customer and the assigned driver).
+  eventId     String
 
   shipmentId  String
   reference   String
@@ -36,9 +37,14 @@ model Notification {
   attempts    Int                @default(0)
   lastError   String?
   sentAt      DateTime?
+  // In-app inbox state. Independent of delivery status: an email can be SENT
+  // and still unread in the app.
+  readAt      DateTime?
   createdAt   DateTime           @default(now())
 
+  @@unique([eventId, recipientId])
   @@index([recipientId, createdAt])
+  @@index([recipientId, readAt])
   @@index([status, createdAt])
 }
 

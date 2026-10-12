@@ -9,6 +9,7 @@ const PayloadSchema = z.object({
   status: z.string().min(1),
   customerId: z.string().min(1),
   driverId: z.string().nullable().default(null),
+  driverUserId: z.string().nullable().default(null),
   origin: z.string().default(''),
   destination: z.string().default(''),
 });
